@@ -86,6 +86,11 @@ thmElemsApp :: (Ord a) => List a -> List a -> Proof
 thmElemsApp Nil ys         = trivial
 thmElemsApp (Cons x xs) ys = thmElemsApp xs ys
 
+{-@ thmAppNilR :: xs:List a -> { app xs Nil = xs } @-}
+thmAppNilR :: List a -> Proof
+thmAppNilR Nil = trivial
+thmAppNilR (Cons x xs) = thmAppNilR xs
+
 {-@ thmPermutExample :: a:List Int -> b:List Int ->
       { permutation (Cons 5 (Cons 6 (app a b)))
                     (app (Cons 5 b) (app (Cons 6 a) Nil)) }
@@ -94,22 +99,32 @@ thmPermutExample :: List Int -> List Int -> Proof
 thmPermutExample a b
   = [ thmElemsApp a b
     , thmElemsApp (Cons 5 b) (Cons 6 a)
-    , thmAppNilR (Cons 6 a)
+    , thmAppNilR  (Cons 6 a)
     ] *** QED
 
-{-@ thmAppNilR :: xs:List a -> { app xs Nil = xs } @-}
-thmAppNilR :: List a -> Proof 
-thmAppNilR Nil = trivial
-thmAppNilR (Cons x xs) = thmAppNilR xs
+{-@ exNotPermutation :: { (permutation (Cons 1 (Cons 1 Nil)) (Cons 1 (Cons 2 Nil))) == False } @-}
+exNotPermutation = trivial
 
+{-@ thmMaybeSwapPerm :: xs:List a -> { permutation xs (maybeSwap xs) } @-}
+thmMaybeSwapPerm :: (Ord a) => List a -> Proof
+thmMaybeSwapPerm Nil                     = trivial
+thmMaybeSwapPerm (Cons a2 Nil)           = trivial
+thmMaybeSwapPerm (Cons a1 (Cons a2 as))
+  | a1 < a2                              = trivial
+  | otherwise                            = trivial
 
+{-@ reflect fstLeSnd @-}
+fstLeSnd :: (Ord a) => List a -> Bool
+fstLeSnd (Cons a1 (Cons a2 as)) = a1 <= a2
+fstLeSnd as                     = True
 
-
-
-
-
-
-
+{-@ thmMaybeSwap12 :: xs:List a -> { fstLeSnd (maybeSwap xs) } @-}
+thmMaybeSwap12 :: (Ord a) => List a -> Proof
+thmMaybeSwap12 Nil                     = trivial
+thmMaybeSwap12 (Cons a2 Nil)           = trivial
+thmMaybeSwap12 (Cons a1 (Cons a2 as))
+  | a1 < a2                            = trivial
+  | otherwise                          = trivial
 
 {-
 
