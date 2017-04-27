@@ -92,3 +92,49 @@ find Empty          key = None
 find (Record k v r) key
   | k == key            = Some v
   | otherwise           = find r key
+
+-- | Misc ----------------------------------------------------------------------
+
+{-@ thmInj :: n:Peano -> {S n /= O} @-}
+thmInj :: Peano -> Proof
+thmInj O     = trivial
+-- thmInj (S n) = trivial
+
+
+{-
+
+```
+$ more niki.fq
+
+qualif Nat(v:int): (0 <= v)
+
+constraint:
+  env []
+  lhs {v : int | [v = 10] }
+  rhs {v : int | $k1 }
+  id 0 tag []
+
+wf:
+  env []
+  reft {v: int | $k1 }
+
+$ stack exec -- fixpoint niki.fq --save --eliminate=none
+
+...
+
+$ more .liquid/niki.fq.fqout
+
+Solution:
+
+$ stack exec -- fixpoint niki.fq --save --eliminate=none --noslice
+
+...
+
+$ more .liquid/niki.fq.fqout
+
+Solution:
+$k1 := 0 <= v
+```
+
+
+-}
