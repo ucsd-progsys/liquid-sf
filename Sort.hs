@@ -1,8 +1,9 @@
 
+{-@ LIQUID "--automatic-instances=liquidinstances" @-}
 {-@ LIQUID "--exact-data-con"                      @-}
 {-@ LIQUID "--higherorder"                         @-}
 {-@ LIQUID "--totality"                            @-}
-{-@ LIQUID "--automatic-instances=liquidinstances" @-}
+{- LIQUID "--diff"                                @-}
 
 module Sort where
 
@@ -11,7 +12,7 @@ import qualified Data.Set as S
 
 -- | Lists ---------------------------------------------------------------------
 
-{-@ data List [llen] a = Nil | Cons {lHd :: a, lTl :: List} @-}
+{-@ data List [llen] a = Nil | Cons {lHd :: a, lTl :: List a} @-}
 data List a = Nil | Cons a (List a)
 
 {-@ measure llen @-}
@@ -75,23 +76,34 @@ thmAppNilR (Cons x xs) = thmAppNilR xs
 
 -- | Insertion Sort ------------------------------------------------------------
 
-{-@ reflect insert @-}
 
 -- This works automatically too.
 {- insert :: (Ord a) => x:a -> xs:List a -> {v:List a | permutation (Cons x xs) v} @-}
-insert :: (Ord a) => a -> List a -> List a
-insert x Nil        = Cons x Nil
-insert x (Cons h t)
-  | x <= h          = Cons x (Cons h t)
-  | otherwise       = Cons h (insert x t)
+
 
 {-@ reflect sort @-}
 sort :: (Ord a) => List a -> List a
 sort Nil        = Nil
 sort (Cons h t) = insert h (sort t)
 
-{-@ testSort :: { sort (Cons 3 (Cons 1 (Cons 2 Nil)))
-                     =  Cons 1 (Cons 2 (Cons 3 Nil)) } @-}
+{-@ reflect insert @-}
+insert :: (Ord a) => a -> List a -> List a
+insert x Nil        = Cons x Nil
+insert x (Cons h t)
+  | x <= h          = Cons x (Cons h t)
+  | otherwise       = Cons h (insert x t)
+
+{-@ reflect foldRight @-}
+foldRight :: (a -> b -> b) -> b -> List a -> b
+foldRight f b Nil         = b
+foldRight f b (Cons x xs) = f x (foldRight f b xs)
+
+{-@ reflect isort @-}
+isort :: (Ord a) => List a -> List a
+isort xs = foldRight insert Nil xs
+
+{-@ testSort :: { isort (Cons 3 (Cons 1 (Cons 2 Nil)))
+                      =  Cons 1 (Cons 2 (Cons 3 Nil)) } @-}
 testSort = trivial
 
 ---
@@ -110,25 +122,30 @@ thmSortPerm :: (Ord a) => List a -> Proof
 thmSortPerm Nil         = trivial
 thmSortPerm (Cons x xs) = [ thmSortPerm xs, thmInsertPerm x (sort xs) ] *** QED
 
----
-
 {-@ reflect sorted @-}
 sorted :: (Ord a) => List a -> Bool
 sorted Nil
   = True
-sorted (Cons h t)
+sorted (Cons h Nil)
   = True
 sorted (Cons x1 (Cons x2 t))
   = if x1 <= x2
       then sorted (Cons x2 t)
       else False
 
+{-@ thmInsertSorted :: x:a -> ys:{List a | sorted ys} -> { sorted (insert x ys) } @-}
+thmInsertSorted :: (Ord a) => a -> List a -> Proof
+thmInsertSorted = undefined
+
+-- thmInsertSorted x Nil         = trivial
+-- thmInsertSorted x (Cons y ys)
+  -- | x <= y                    = trivial
+  -- | otherwise                 = thmInsertSorted x ys
+ 
 {-@ thmSortSorted :: xs:List a -> { sorted (sort xs) } @-}
 thmSortSorted :: (Ord a) => List a -> Proof
-thmSortSorted Nil = trivial
-
-
-
+thmSortSorted Nil         = trivial
+thmSortSorted (Cons x xs) = [ thmSortSorted xs, thmInsertSorted x xs ] *** QED
 
 
 

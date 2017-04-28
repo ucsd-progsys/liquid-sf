@@ -2,6 +2,15 @@
 
 Port "Software Foundations" to LiquidHaskell
 
+## Issues 
+
+`Sort.hs`
+
+- Wierd LH sort-error crash
+    
+  https://github.com/ucsd-progsys/liquidhaskell/issues/1004
+
+## Inductive Predicates 
 
 ```
 {-@ measure permutation :: List a -> List a -> Bool @-}
