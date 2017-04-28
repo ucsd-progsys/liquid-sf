@@ -2,15 +2,33 @@
 
 Port "Software Foundations" to LiquidHaskell
 
-## Issues 
+* VFA -> Perm ->  Sort -> *Selection* -> SearchTree -> Redblack
+             `-> Trie `-> Multiset                 `-> ADT -> Priqueue -> Binom
+
+- [*] VFA
+- [*] Perm
+- [*] Sort
+- [ ] Selection
+- [ ] SearchTree
+- [ ] Redblack
+- [ ] Trie
+- [ ] Multiset
+- [ ] ADT
+- [ ] Priqueue
+- [ ] Binom
+
+## Issues
 
 `Sort.hs`
 
-- Wierd LH sort-error crash
-    
-  https://github.com/ucsd-progsys/liquidhaskell/issues/1004
+- {-@ TODO:LH #1004 thmInsertSorted :: x:a -> ys:{List a | sorted ys} -> { sorted (insert x ys) } @-}
+- {-@ TODO:LH #1004 thmSortSorted :: xs:List a -> { sorted (sort xs) } @-}
+- https://github.com/ucsd-progsys/liquidhaskell/issues/1004
 
-## Inductive Predicates 
+
+
+
+## Inductive Predicates
 
 ```
 {-@ measure permutation :: List a -> List a -> Bool @-}

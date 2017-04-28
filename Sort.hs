@@ -68,9 +68,8 @@ thmElemsApp (Cons x xs) ys = thmElemsApp xs ys
 
 {-@ thmAppNilR :: xs:List a -> { app xs Nil = xs } @-}
 thmAppNilR :: List a -> Proof
-thmAppNilR Nil = trivial
+thmAppNilR Nil         = trivial
 thmAppNilR (Cons x xs) = thmAppNilR xs
-
 
 
 
@@ -122,35 +121,53 @@ thmSortPerm :: (Ord a) => List a -> Proof
 thmSortPerm Nil         = trivial
 thmSortPerm (Cons x xs) = [ thmSortPerm xs, thmInsertPerm x (sort xs) ] *** QED
 
+{-@ reflect sorted1 @-}
+sorted1 :: (Ord a) => a -> List a -> Bool
+sorted1 x Nil         = True
+sorted1 x (Cons y ys) = if x <= y
+                          then sorted1 y ys
+                          else False
+
 {-@ reflect sorted @-}
 sorted :: (Ord a) => List a -> Bool
-sorted Nil
-  = True
-sorted (Cons h Nil)
-  = True
-sorted (Cons x1 (Cons x2 t))
-  = if x1 <= x2
-      then sorted (Cons x2 t)
-      else False
+sorted Nil        = True
+sorted (Cons h t) = sorted1 h t
 
-{-@ thmInsertSorted :: x:a -> ys:{List a | sorted ys} -> { sorted (insert x ys) } @-}
+{-@ thmInsertHead :: (Ord a) => x:a -> l:List a -> { lHd (insert x l) <= x} @-}
+thmInsertHead x Nil         = trivial
+thmInsertHead x (Cons h t)
+  | x <= h                  = trivial
+  | otherwise               = trivial
+
+{-@ thmSorted1Sorted :: (Ord a) => h:a -> t:{List a | sorted1 h t} -> {sorted (Cons h t)} @-}
+thmSorted1Sorted :: (Ord a) => a -> List a -> Proof
+thmSorted1Sorted h t = trivial
+
+{-@ thmConsSorted  :: (Ord a) => h:a -> t:{List a | h <= lHd t && sorted t} -> {sorted (Cons h t)} @-}
+thmConsSorted :: (Ord a) => a -> List a -> Proof
+thmConsSorted h Nil         = trivial
+thmConsSorted h (Cons h1 t) = trivial
+
+
+-- TODO: the below _should_ work but crashes see LH #1004
+
+{- TODO: LH#1004 thmInsertSorted :: x:a -> ys:{List a | sorted ys} -> { sorted (insert x ys) } @-}
 thmInsertSorted :: (Ord a) => a -> List a -> Proof
-thmInsertSorted = undefined
+thmInsertSorted x ys = ()
+thmInsertSorted x Nil         =  trivial
+thmInsertSorted x (Cons h t)
+  | x <= h                    = trivial
+  | otherwise                 = [ thmInsertSorted x t, thmInsertHead x t, thmConsSorted h (insert x t) ] *** QED
 
--- thmInsertSorted x Nil         = trivial
--- thmInsertSorted x (Cons y ys)
-  -- | x <= y                    = trivial
-  -- | otherwise                 = thmInsertSorted x ys
- 
-{-@ thmSortSorted :: xs:List a -> { sorted (sort xs) } @-}
+-- TODO: the below works if we switch-off instances,
+-- using the above definition for `thmInsertSorted`
+-- would be less icky with instances but see LH #1004
+
+{- TODO:LH#1004 thmSortSorted :: xs:List a -> { sorted (sort xs) } @-}
 thmSortSorted :: (Ord a) => List a -> Proof
-thmSortSorted Nil         = trivial
-thmSortSorted (Cons x xs) = [ thmSortSorted xs, thmInsertSorted x xs ] *** QED
-
-
-
-
-
-
-
-----
+thmSortSorted z@Nil       = (sort z, sorted z) *** QED
+thmSortSorted (Cons x xs) = ( sort (Cons x xs)
+                            , insert x (sort xs)
+                            , thmSortSorted xs
+                            , thmInsertSorted x (sort xs)
+                            ) *** QED
