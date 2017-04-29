@@ -1,8 +1,9 @@
 {-@ LIQUID "--exact-data-con"                      @-}
 {-@ LIQUID "--higherorder"                         @-}
 {-@ LIQUID "--totality"                            @-}
+
 {- LIQUID "--automatic-instances=liquidinstances" @-}
-{-@ LIQUID "--diff"                                @-}
+{- LIQUID "--diff"                                @-}
 
 module SearchTree where
 
@@ -63,15 +64,24 @@ put key val (Node k v l r)
       { get key (put key val m) = Some val }
   @-}
 thmGetEq :: (Ord k) => k -> v -> Map k v -> Proof
-thmGetEq key val Leaf = trivial
+thmGetEq key val Leaf =   get key (put key val Leaf)
+                      ==. get key (Node key val Leaf Leaf)
+                      ==. Some val
+                      *** QED
+
 thmGetEq key val (Node k v l r)
-  | key == k          =   trivial
+  | key == k          =   get key (put key val (Node k v l r))
+                      ==. get key (Node key val l r)
+                      ==. Some val
+                      *** QED
+
   | key <  k          =   get key (put key val (Node k v l r))
                       ==. get key (Node k v (put key val l) r)    -- THIS LINE IS NEEDED
                       ==. get key (put key val l)
                           ? thmGetEq key val l
                       ==. Some val
                       *** QED
+
   | otherwise         =   get key (put key val (Node k v l r))
                       ==. get key (Node k v l (put key val r))    -- THIS LINE IS NEEDED
                       ==. get key (put key val r)
