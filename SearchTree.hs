@@ -110,7 +110,7 @@ thmGetNeq k1 k2 v2 (Node k v l r)
                         ==. get k1 (Node k v l r)
                         *** QED
 
-  | k1 <  k, k == k2    =   get k1 (put k2 v2 (Node k v l r))
+  | k == k2             =   get k1 (put k2 v2 (Node k v l r))
                         ==. get k1 (Node k v2 l r)
                         ==. get k1 (Node k v l r)
                         *** QED
@@ -120,20 +120,14 @@ thmGetNeq k1 k2 v2 (Node k v l r)
                         ==. get k1 (Node k v l r)
                         *** QED
 
-
-  | k2 <  k, k <  k1    =   get k1 (put k2 v2 (Node k v l r))
-                        ==. get k1 (Node k v (put k2 v2 l) r)
-                        ==. get k1 r
-                        ==. get k1 (Node k v l r)
-                        *** QED
-
   | k2 <  k, k == k1    =   get k1 (put k2 v2 (Node k v l r))
                         ==. get k1 (Node k v (put k2 v2 l) r)
                         ==. get k1 (Node k v l r)
                         *** QED
 
-  | k2 == k, k < k1     =   get k1 (put k2 v2 (Node k v l r))
-                        ==. get k1 (Node k v2 l r)
+  | k2 <  k, k <  k1    =   get k1 (put k2 v2 (Node k v l r))
+                        ==. get k1 (Node k v (put k2 v2 l) r)
+                        ==. get k1 r
                         ==. get k1 (Node k v l r)
                         *** QED
 

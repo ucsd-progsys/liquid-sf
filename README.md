@@ -25,8 +25,60 @@ Port "Software Foundations" to LiquidHaskell
 - {-@ TODO:LH #1004 thmSortSorted :: xs:List a -> { sorted (sort xs) } @-}
 - https://github.com/ucsd-progsys/liquidhaskell/issues/1004
 
+## Reasoning about Stores
 
+Maybe the below is crap; just prove the law* for each map implementation.
 
+### Stores via abstract refinements
+
+```haskell
+data Map k v <r :: k -> v -> bool>
+
+init  :: val:v -> Map <{\ _ v -> v = val}> k v
+empty :: Map k v <{\key val -> False}>
+get   :: key:k -> Map<r> k v -> v<r key>
+put   :: key:k -> val:v -> Map<r> k v -> 
+```
+
+### Laws for an abstract `Store`
+
+You get to _assume_ these.
+
+```
+lawStoreEmp :: key:k
+            -> { sel key emp = None }
+lawStoreEq  :: key:k -> val:v -> s:Store k v
+            -> { sel key (sto key val s) = s }
+lawStoreNe  :: key':k -> key:{k | key /= key'} -> val:v -> s:Store k v
+            -> { sel key' (sto key val s) = sel key' s }
+```
+
+### Equivalence
+
+A "proof" of equivalence is a function of the below type,
+that says that a dictionary `m` is equivalent to the store `s`
+
+```
+type Eq m s = key:k -> { get key m = sel m s }
+```
+
+### Correctness
+
+Suppose you have an implementation of a `Map` with the following API:
+
+```haskell
+empty :: Map k v
+get   :: k -> Map k v -> Option v
+put   :: k -> v -> Map k v -> Map k v
+```
+
+To prove a given implementation of a `Map` is correct, show that:
+
+```
+thmEmp :: Eq empty emp
+thmPut :: m:Map k v -> s:{Store k v | Eq m s}  -> key:k -> val:v
+       -> { Eq (put key val m) (sto key val s) }
+```
 
 ## Inductive Predicates
 

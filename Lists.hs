@@ -3,7 +3,7 @@
 {-@ LIQUID "--higherorder"                         @-}
 {-@ LIQUID "--totality"                            @-}
 {-@ LIQUID "--automatic-instances=liquidinstances" @-}
-{- LIQUID "--diff"                                @-}
+{-@ LIQUID "--diff"                                @-}
 
 module Lists where
 
