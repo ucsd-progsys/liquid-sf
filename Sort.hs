@@ -37,11 +37,13 @@ maybeSwap ar                   = ar
 {-@ thmMaybeSwapIdempotent :: xs:List a ->
      { maybeSwap (maybeSwap xs) = maybeSwap xs }
   @-}
-thmMaybeSwapIdempotent Nil                     = trivial
-thmMaybeSwapIdempotent (Cons a2 Nil)           = trivial
 thmMaybeSwapIdempotent (Cons a1 (Cons a2 as))
   | a1 < a2                                    = trivial
   | otherwise                                  = trivial
+thmMaybeSwapIdempotent as                      = trivial
+
+-- thmMaybeSwapIdempotent (Cons a2 Nil)           = trivial
+-- thmMaybeSwapIdempotent Nil                     = trivial
 
 -- | Permutations --------------------------------------------------------------
 

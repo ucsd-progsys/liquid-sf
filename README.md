@@ -17,6 +17,15 @@ Port "Software Foundations" to LiquidHaskell
 - [ ] Priqueue
 - [ ] Binom
 
+
+
+  type State = St { ptr :: STRef Int }
+
+  type ST a = State -> (a, State)
+
+
+
+
 ## Issues
 
 `Sort.hs`
@@ -37,7 +46,7 @@ data Map k v <r :: k -> v -> bool>
 init  :: val:v -> Map <{\ _ v -> v = val}> k v
 empty :: Map k v <{\key val -> False}>
 get   :: key:k -> Map<r> k v -> v<r key>
-put   :: key:k -> val:v -> Map<r> k v -> 
+put   :: key:k -> val:v -> Map<r> k v ->
 ```
 
 ### Laws for an abstract `Store`

@@ -16,9 +16,18 @@ llen Nil        = 0
 llen (Cons h t) = 1 + llen t
 
 {-@ data List [llen] a = Nil | Cons {lHd :: a , lTl :: (List a) } @-}
-data List a = Nil | Cons a (List a)
+data List a = Nil | Cons a (List a) deriving (Eq)
 
 --------------------------------------------------------------------------------
+
+isIns :: x:a -> ys:List a -> xys:List a -> Bool
+isIns x ys (Cons z zs)
+  | (x == z && ys == zs) = True
+isIns x (Cons y ys) (Cons z zs)
+  | (y == z)             = isIns x ys zs
+  | otherwise            = isIns
+
+isIns
 
 data IsIns a
   = Here  { m :: a, ms :: List a }
@@ -104,6 +113,7 @@ lemma :: a -> List a -> List a -> IsIns a -> ()
 lemma x ys xys Here  = ()
 lemma x ys xys There = undefined
 
+{-
 
   lemma : ∀ {m ns mns}
         → m ∪ ns ≡ mns → m <> sum ns ≡ sum mns
@@ -113,3 +123,5 @@ lemma x ys xys There = undefined
           | <>-comm m n
           | <>-assoc n m (sum ns)
           | lemma p = refl
+
+-}
