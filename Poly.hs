@@ -134,6 +134,36 @@ thmFoldLenCorrect :: List a -> Proof
 thmFoldLenCorrect Nil         = ()
 thmFoldLenCorrect (Cons x xs) = thmFoldLenCorrect xs
 
+{-@ reflect up @-}
+up :: Int -> Int
+up x = x + 1
+
+{-@ thmMapIncr :: xs:List Int -> { tot (map up xs) == tot xs + myLen xs } @-}
+thmMapIncr :: List Int -> Proof
+thmMapIncr Nil         = ()
+thmMapIncr (Cons x xs) = thmMapIncr xs
+                       -- sum (map up (Cons x xs))
+                       -- ==. sum (Cons (up x) (map up xs))
+                       -- ==. fold plus 0 (Cons (up x) (map up xs))
+                       -- ==. plus (up x) (fold plus 0 (map up xs))
+                       -- ==. plus (up x) (sum (map up xs))
+                           -- ? thmMapIncr xs
+                       -- ==. plus (up x) (sum xs + llen xs)
+                       -- ==. plus (x+1)  (sum xs + llen xs)
+                       -- ==. (x + sum xs) + (1 + llen xs)
+                       -- ==. sum (Cons x xs) + llen (Cons x xs)
+                       -- *** QED
+
+{-@ reflect myLen @-}
+myLen :: List a -> Int
+myLen Nil         = 0
+myLen (Cons x xs) = 1 + myLen xs
+
+{-@ reflect tot @-}
+tot :: List Int -> Int
+tot Nil         = 0
+tot (Cons x xs) = x + tot xs
+
 -- | FoldMap -------------------------------------------------------------------
 
 {-@ reflect glob @-}

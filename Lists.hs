@@ -1,89 +1,14 @@
 
 {-@ LIQUID "--exact-data-con"                      @-}
 {-@ LIQUID "--higherorder"                         @-}
-{-@ LIQUID "--totality"                            @-}
 {-@ LIQUID "--automatic-instances=liquidinstances" @-}
-{-@ LIQUID "--diff"                                @-}
+{- LIQUID "--diff"                                @-}
 
 module Lists where
 
--- import qualified Prelude
--- import           Prelude ((+), (+), Eq (..), Ord (..), Char, Int, Bool (..))
+import Peano
+import Pairs
 import Language.Haskell.Liquid.ProofCombinators
-
---------------------------------------------------------------------------------
--- TODO:import Basics
-
-{-@ data Peano [toNat] = O | S Peano @-}
-data Peano = O | S Peano
-
-{-@ measure toNat @-}
-{-@ toNat :: Peano -> Nat @-}
-toNat :: Peano -> Int
-toNat O     = 0
-toNat (S n) = 1 Prelude.+ toNat n
-
-{-@ reflect plus @-}
-plus :: Peano -> Peano -> Peano
-plus O     n = n
-plus (S m) n = S (plus m n)
-
-{-@ data BBool = BTrue | BFalse @-}
-data BBool = BTrue | BFalse
-             deriving (Eq)
-
-{-@ reflect negb @-}
-negb :: BBool -> BBool
-negb BTrue  = BFalse
-negb BFalse = BTrue
-
---------------------------------------------------------------------------------
--- | Pairs ---------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-{-@ data Pair = Pair { px :: Nat, py :: Nat} @-}
-data Pair = Pair Int Int
-
-{-@ measure pFst @-}
-pFst :: Pair -> Int
-pFst (Pair x y) = x
-
-{-@ measure pSnd @-}
-pSnd :: Pair -> Int
-pSnd (Pair x y) = y
-
-{-@ testFst :: { pFst (Pair 3 5) == 3 } @-}
-testFst = trivial
-
-{-@ testSnd :: { pSnd (Pair 3 5) == 5 } @-}
-testSnd = trivial
-
---------------------------------------------------------------------------------
-
-{-@ thmSurjectivePairing ::
-    n:Int -> m:Int -> { (Pair n m) == Pair (pFst (Pair n m)) (pSnd (Pair n m))}
-  @-}
-
-thmSurjectivePairing :: Int -> Int -> Proof
-thmSurjectivePairing n m = trivial
-
-{-@ thmSurjectivePairing' :: p:Pair -> { p == Pair (pFst p) (pSnd p) } @-}
-thmSurjectivePairing' :: Pair -> Proof
-thmSurjectivePairing' (Pair x y) = trivial
-
--- | swap ----------------------------------------------------------------------
-
-{-@ reflect swapPair @-}
-swapPair :: Pair -> Pair
-swapPair (Pair x y) = Pair y x
-
-{-@ thmSndFstIsSwap :: p:Pair -> { swapPair p == Pair (pSnd p) (pFst p) } @-}
-thmSndFstIsSwap :: Pair -> Proof
-thmSndFstIsSwap (Pair x y) = trivial
-
-{-@ thmFstSwapIsSnd :: p:Pair -> { pFst (swapPair p) == (pSnd p) } @-}
-thmFstSwapIsSnd :: Pair -> Proof
-thmFstSwapIsSnd (Pair x y) = trivial
 
 --------------------------------------------------------------------------------
 -- | Lists ---------------------------------------------------------------------
@@ -112,15 +37,15 @@ app :: List -> List -> List
 app Nil         ys = ys
 app (Cons x xs) ys = Cons x (app xs ys)
 
-{-@ testApp1 :: { app (Cons 1 (Cons 2 (Cons 3 Nil))) (Cons 4 (Cons 5 Nil))
-                    =  Cons 1 (Cons 2 (Cons 3  (Cons 4 (Cons 5 Nil))))   } @-}
-testApp1 = trivial
+{-@ testApp1 :: () -> { app (Cons 1 (Cons 2 (Cons 3 Nil))) (Cons 4 (Cons 5 Nil))
+                          =  Cons 1 (Cons 2 (Cons 3  (Cons 4 (Cons 5 Nil))))   } @-}
+testApp1 () = trivial
 
-{-@ testApp2 :: { app Nil (Cons 4 (Cons 5 Nil)) = (Cons 4 (Cons 5 Nil))  } @-}
-testApp2 = trivial
+{-@ testApp2 :: () -> { app Nil (Cons 4 (Cons 5 Nil)) = (Cons 4 (Cons 5 Nil))  } @-}
+testApp2 () = trivial
 
-{-@ testApp3 :: { app (Cons 1 (Cons 2 (Cons 3 Nil))) Nil = Cons 1 (Cons 2 (Cons 3 Nil)) } @-}
-testApp3 = trivial
+{-@ testApp3 :: () -> { app (Cons 1 (Cons 2 (Cons 3 Nil))) Nil = Cons 1 (Cons 2 (Cons 3 Nil)) } @-}
+testApp3 () = trivial
 
 -- | Head and Tail with default ------------------------------------------------
 
@@ -134,14 +59,14 @@ tl :: List -> List
 tl Nil         = Nil
 tl (Cons x xs) = xs
 
-{-@ testHd1 :: { hd 0 (Cons 1 (Cons 2 (Cons 3 Nil))) == 1 } @-}
-testHd1 = trivial
+{-@ testHd1 :: () -> { hd 0 (Cons 1 (Cons 2 (Cons 3 Nil))) == 1 } @-}
+testHd1 () = trivial
 
-{-@ testHd2 :: { hd 0 Nil = 0} @-}
-testHd2 = trivial
+{-@ testHd2 :: () -> { hd 0 Nil = 0} @-}
+testHd2 () = trivial
 
-{-@ testTl  :: { tl (Cons 1 (Cons 2 (Cons 3 Nil))) = Cons 2 (Cons 3 Nil) } @-}
-testTl = trivial
+{-@ testTl  :: () -> { tl (Cons 1 (Cons 2 (Cons 3 Nil))) = Cons 2 (Cons 3 Nil) } @-}
+testTl () = trivial
 
 -- | Exercises -----------------------------------------------------------------
 
@@ -152,9 +77,9 @@ nonZeros (Cons x xs) = if x /= 0
                          then Cons x (nonZeros xs)
                          else        (nonZeros xs)
 
-{-@ testNonZeros :: { nonZeros (Cons 0 (Cons 1 (Cons 0 (Cons 2 (Cons 3 (Cons 0 Nil))))))
-                      = Cons 1 (Cons 2 (Cons 3 Nil)) } @-}
-testNonZeros = trivial
+{-@ testNonZeros :: () -> { nonZeros (Cons 0 (Cons 1 (Cons 0 (Cons 2 (Cons 3 (Cons 0 Nil))))))
+                                    = Cons 1 (Cons 2 (Cons 3 Nil)) } @-}
+testNonZeros () = trivial
 
 {-@ reflect isOdd @-}
 isOdd :: Int -> Bool
@@ -164,8 +89,8 @@ isOdd n = if n <= 0
                  then True
                  else isOdd (n Prelude.- 2)
 
-{-@ testIsOdd  :: { isOdd 13 } @-}
-testIsOdd = trivial
+{-@ testIsOdd  :: () -> { isOdd 13 } @-}
+testIsOdd () = trivial
 
 {-@ reflect oddMembers @-}
 oddMembers :: List -> List
@@ -174,9 +99,9 @@ oddMembers (Cons x xs) = if isOdd x
                            then Cons x (oddMembers xs)
                            else        (oddMembers xs)
 
-{-@ testOddMembers :: { oddMembers (Cons 0 (Cons 1 (Cons 0 (Cons 2 (Cons 3 (Cons 0 Nil))))))
-                          = Cons 1 (Cons 3 Nil) } @-}
-testOddMembers =  trivial
+{-@ testOddMembers :: () -> { oddMembers (Cons 0 (Cons 1 (Cons 0 (Cons 2 (Cons 3 (Cons 0 Nil))))))
+                                        = Cons 1 (Cons 3 Nil) } @-}
+testOddMembers () =  trivial
 
 {-@ inline countOddMembers @-}
 countOddMembers :: List -> Int
@@ -188,8 +113,8 @@ countOddMembers xs = llen (oddMembers xs)
 -- TODO:see LH #997
 {- testCountOddMembers
     :: { llen (oddMembers (Cons 0 (Cons 1 (Cons 0 (Cons 2 (Cons 3 (Cons 0 Nil))))))) = 2  } @-}
-{-@ testCountOddMembers :: { llen (oddMembers Nil) = 0  } @-}
-testCountOddMembers =  trivial
+{-@ testCountOddMembers :: () -> { llen (oddMembers Nil) = 0  } @-}
+testCountOddMembers () = trivial
 
 {-@ reflect alternate @-}
 alternate :: List -> List -> List
@@ -197,21 +122,15 @@ alternate (Cons x xs) (Cons y ys) = Cons x (Cons y (alternate xs ys))
 alternate Nil         ys          = ys
 alternate xs           Nil        = xs
 
-{-@ testAlternate1
-      :: { alternate (Cons 1 (Cons 2 Nil)) (Cons 4 (Cons 5 Nil))
-                    = Cons 1 (Cons 4 (Cons 2 (Cons 5 Nil))) }
-  @-}
-testAlternate1 =  trivial
+{-@ testAlternate1 :: () -> { alternate (Cons 1 (Cons 2 Nil)) (Cons 4 (Cons 5 Nil))
+                                       = Cons 1 (Cons 4 (Cons 2 (Cons 5 Nil))) }          @-}
+testAlternate1 () = trivial
 
-{-@ testAlternate2
-      :: { alternate (Cons 1 (Cons 2 Nil)) Nil = Cons 1 (Cons 2 Nil) }
-  @-}
-testAlternate2 = trivial
+{-@ testAlternate2 :: () -> { alternate (Cons 1 (Cons 2 Nil)) Nil = Cons 1 (Cons 2 Nil) } @-}
+testAlternate2 () = trivial
 
-{-@ testAlternate3
-      :: { alternate Nil (Cons 1 (Cons 2 Nil)) = Cons 1 (Cons 2 Nil) }
-  @-}
-testAlternate3 = trivial
+{-@ testAlternate3 :: () -> { alternate Nil (Cons 1 (Cons 2 Nil)) = Cons 1 (Cons 2 Nil) } @-}
+testAlternate3 () = trivial
 
 -- | Bags via Lists ------------------------------------------------------------
 
@@ -351,7 +270,7 @@ thmNonZerosApp :: List -> List -> Proof
 thmNonZerosApp (Cons x xs) l2
   | x == 0            = thmNonZerosApp xs l2
   | x /= 0            = thmNonZerosApp xs l2
-thmNonZerosApp Nil l2 =  trivial
+thmNonZerosApp Nil l2 = trivial
 
 -- | List Equality -------------------------------------------------------------
 
@@ -362,8 +281,8 @@ beqList Nil         Nil         = True
 beqList Nil         (Cons y ys) = False
 beqList (Cons x xs) Nil         = False
 
-{-@ testBeqList1 :: { beqList Nil Nil } @-}
-testBeqList1 = trivial
+{-@ testBeqList1 :: () -> { beqList Nil Nil } @-}
+testBeqList1 () = trivial
 
 {- TODO:#997 testBeqList2 :: { beqList (Cons 1 Nil) (Cons 1 Nil) } @-}
 testBeqList2 = trivial
@@ -386,7 +305,7 @@ thmRevInjective xs ys
 
 -- | Options -------------------------------------------------------------------
 
-{-@ data Option = None | Some Int @-}
+{- data Option = None | Some Int @-}
 data Option = None | Some Int
 
 -- | Partial Maps -------------------------------------------------------------
