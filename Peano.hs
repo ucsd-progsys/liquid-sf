@@ -17,6 +17,18 @@ data Peano where
   Z :: Peano
   S :: Peano -> Peano
 
+{-@ reflect one @-}
+one   = S Z
+
+{-@ reflect two @-}
+two   = S (S Z)
+
+{-@ reflect three @-}
+three = S (S (S Z))
+
+{-@ reflect four @-}
+four  = S (S (S (S Z)))
+
 {-@ measure toNat @-}
 {-@ toNat :: Peano -> Nat @-}
 toNat :: Peano -> Int
