@@ -14,7 +14,7 @@ import Language.Haskell.Liquid.ProofCombinators
 -- | Lists ---------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-{-@ data List [llen] = Nil | Cons {lHd :: Int, lTl :: List} @-}
+{-@ data List [llen] @-}
 data List = Nil | Cons Int List
 
 {-@ measure llen @-}
@@ -157,11 +157,11 @@ testCount2 =  trivial
 thmNilApp :: List -> Proof
 thmNilApp xs = trivial
 
-{-@ reflect prev @-}
-prev :: Int -> Int
-prev n = if n == 0 then 0 else n - 1
+{-@ reflect decr @-}
+decr :: Int -> Int
+decr n = if n == 0 then 0 else n - 1
 
-{-@ thmTlLenPrev :: xs:List -> { prev (llen xs) = llen (tl xs) } @-}
+{-@ thmTlLenPrev :: xs:List -> { decr (llen xs) = llen (tl xs) } @-}
 thmTlLenPrev :: List -> Proof
 thmTlLenPrev Nil         = trivial
 thmTlLenPrev (Cons x xs) = trivial
@@ -313,9 +313,8 @@ data Option = None | Some Int
 type Key = Int
 type Val = Int
 
-{-@ data Map [mlen] = Empty | Record {mKey :: Key, mVal :: Val, mRest :: Map } @-}
-data Map = Empty
-         | Record Key Val Map
+{-@ data Map [mlen] @-}
+data Map = Empty | Record Key Val Map
 
 {-@ measure mlen @-}
 {-@ mlen :: Map -> Nat @-}

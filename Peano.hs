@@ -69,3 +69,10 @@ plus_comm (S n) m = plus_comm n m &&& plus_succ_r (S m) n
 plus_assoc :: Peano -> Peano -> Peano -> ()
 plus_assoc Z m p     = ()
 plus_assoc (S n) m p = plus_assoc n m p
+
+
+{-@ reflect isLe @-}
+isLe :: Peano -> Peano -> Bool
+isLe Z _         = True
+isLe _ Z         = False
+isLe (S n) (S m) = isLe n m
