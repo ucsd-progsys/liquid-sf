@@ -1,19 +1,16 @@
 {-@ LIQUID "--exact-data-con" @-}
 {-@ LIQUID "--no-adt"         @-}
 {-@ LIQUID "--prune-unsorted" @-}
-{-@ LIQUID "--higherorder"    @-} -- just to disable all qualifiers
+{-@ LIQUID "--higherorder"    @-}
 {-@ LIQUID "--diff"           @-}
-{- LIQUID "--ple"            @-}
-{-@ LIQUID "--no-termination" @-}
 
-module Intervals.Types where
+module Types where
 
 import qualified Data.Set as S
 import           Language.Haskell.Liquid.NewProofCombinators
 import           RangeSet
 
 type Offset = Int
-
 
 -- | Invariant: Intervals are non-empty
 {-@ data Interval = I
@@ -50,7 +47,6 @@ okIntervals lb ((I f t) : is) = lb <= f && f < t && okIntervals t is
 -- | Unit tests
 --------------------------------------------------------------------------------
 okItv  = I 10 20
-
 -- REJECTED
 -- badItv = I 20 10
 
@@ -59,9 +55,18 @@ okItvs  = Intervals [I 10 20, I 30 40, I 40 50]
 -- REJECTED
 -- badItvs = Intervals [I 10 20, I 40 50, I 30 40]
 
-{-@ coz :: a -> () -> a @-}
-coz :: a -> () -> a
-coz x _ = x
+{-@ withProof :: a -> () -> a @-}
+withProof :: a -> () -> a
+withProof x _ = x
+
+{-@ lem_disj_intervals :: i:_ -> is:OrdIntervals {to i} ->
+                            {disjoint (semI i) (semIs is)}
+  @-}
+lem_disj_intervals _ []
+  = ()
+lem_disj_intervals i@(I f t) ((I f' t') : is)
+  = lem_disj f t f' t' &&& lem_disj_intervals i is
+
 
 --------------------------------------------------------------------------------
 -- | Semantics of Intervals

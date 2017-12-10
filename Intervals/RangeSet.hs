@@ -2,7 +2,7 @@
 {-@ LIQUID "--no-adt"         @-}
 {-@ LIQUID "--ple"            @-}
 
-module Intervals.RangeSet where
+module RangeSet where
 
 import qualified Data.Set as S
 import Language.Haskell.Liquid.NewProofCombinators
@@ -76,7 +76,7 @@ lem_split f x t
 -- | LEMMA: The range-sets of non-overlapping ranges is disjoint.
 --------------------------------------------------------------------------------
 {-@ lem_disj :: f1:_ -> t1:_ -> f2:{Int | t1 <= f2 } -> t2:Int  ->
-                   { S.intersection (rng f1 t1) (rng f2 t2) = S.empty } / [t2 - f2]
+                   { disjoint (rng f1 t1) (rng f2 t2) } / [t2 - f2]
   @-}
 lem_disj :: Int -> Int -> Int -> Int -> ()
 lem_disj f1 t1 f2 t2
