@@ -1,3 +1,5 @@
+-- | LH Port of https://github.com/antalsz/hs-to-coq/blob/8f84d61093b7be36190142c795d6cd4496ef5aed/examples/intervals/Intervals.hs
+
 {-@ LIQUID "--exact-data-con" @-}
 {-@ LIQUID "--no-adt"         @-}
 {-@ LIQUID "--prune-unsorted" @-}
