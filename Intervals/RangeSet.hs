@@ -5,7 +5,7 @@
 module RangeSet where
 
 import qualified Data.Set as S
-import Language.Haskell.Liquid.NewProofCombinators
+import           Language.Haskell.Liquid.NewProofCombinators
 
 --------------------------------------------------------------------------------
 -- | 'rng i j' defines the set of integers in the range '[i..j]'
@@ -17,19 +17,12 @@ rng i j
   | i < j     = S.union (S.singleton i) (rng (i+1) j)
   | otherwise = S.empty
 
-{-
-  lem_disj  :: i:_ -> is:OrdIntervals {to i} ->
-                { cap (sem i) (sem is) = empty }
- -}
-
-
 --------------------------------------------------------------------------------
 -- | LEMMA: The inner-points define the intersection of overlapping range-sets.
 --------------------------------------------------------------------------------
 
 {-@ lem_intersect :: f1:_ -> t1:{_ | f1 < t1} -> f2:_ -> t2:{_ | f2 < t2 && f1 <= t2 && t2 <= t1 } ->
-                      { rng (mmax f1 f2) t2 = S.intersection (rng f1 t1) (rng f2 t2) }
-  @-}
+                      { rng (mmax f1 f2) t2 = S.intersection (rng f1 t1) (rng f2 t2) }  @-}
 lem_intersect :: Int -> Int -> Int -> Int -> ()
 lem_intersect f1 t1 f2 t2
   | f1 < f2   = lem_sub f2 t2 f1 t1
@@ -42,8 +35,7 @@ lem_intersect f1 t1 f2 t2
 -- | LEMMA: The endpoints define the union of overlapping range-sets.
 --------------------------------------------------------------------------------
 {-@ lem_union :: f1:_ -> t1:{_ | f1 < t1} -> f2:_ -> t2:{_ | f2 < t2 && f1 <= t2 && t2 <= t1 } ->
-                { rng (mmin f1 f2) t1 = S.union (rng f1 t1) (rng f2 t2) }
-  @-}
+                { rng (mmin f1 f2) t1 = S.union (rng f1 t1) (rng f2 t2) }   @-}
 lem_union :: Int -> Int -> Int -> Int -> ()
 lem_union f1 t1 f2 t2
   | f1 < f2   = lem_sub f2 t2 f1 t1
@@ -55,8 +47,7 @@ lem_union f1 t1 f2 t2
 -- | LEMMA: The range-set of an interval is contained inside that of a larger.
 --------------------------------------------------------------------------------
 {-@ lem_sub :: f1:_ -> t1:{_ | f1 < t1} -> f2:_ -> t2:{_ | f2 < t2 && f2 <= f1 && t1 <= t2 } ->
-                { S.isSubsetOf (rng f1 t1) (rng f2 t2) }
-  @-}
+                { S.isSubsetOf (rng f1 t1) (rng f2 t2) } @-}
 lem_sub :: Int -> Int -> Int -> Int -> ()
 lem_sub f1 t1 f2 t2 = lem_split f2 f1 t2
                   &&& lem_split f1 t1 t2
@@ -65,8 +56,7 @@ lem_sub f1 t1 f2 t2 = lem_split f2 f1 t2
 -- | LEMMA: A range-set can be partitioned by any point within the range.
 --------------------------------------------------------------------------------
 {-@ lem_split :: f:_ -> x:{_ | f <= x} -> t:{_ | x <= t} ->
-                   { disjointUnion (rng f t) (rng f x) (rng x t) } / [x - f]
-  @-}
+                   { disjointUnion (rng f t) (rng f x) (rng x t) } / [x - f] @-}
 lem_split :: Int -> Int -> Int -> ()
 lem_split f x t
   | f == x    =  ()
@@ -76,8 +66,7 @@ lem_split f x t
 -- | LEMMA: The range-sets of non-overlapping ranges is disjoint.
 --------------------------------------------------------------------------------
 {-@ lem_disj :: f1:_ -> t1:_ -> f2:{Int | t1 <= f2 } -> t2:Int  ->
-                   { disjoint (rng f1 t1) (rng f2 t2) } / [t2 - f2]
-  @-}
+                   { disjoint (rng f1 t1) (rng f2 t2) } / [t2 - f2] @-}
 lem_disj :: Int -> Int -> Int -> Int -> ()
 lem_disj f1 t1 f2 t2
   | f2 < t2   = lem_mem f1 t1 f2 &&& lem_disj f1 t1 (f2 + 1) t2
@@ -87,8 +76,7 @@ lem_disj f1 t1 f2 t2
 -- | LEMMA: If x is not in a given range, then x is not in the range-set.
 --------------------------------------------------------------------------------
 {-@ lem_mem :: f:Int -> t:Int -> x:{Int| x < f || t <= x} ->
-                  { not (S.member x (rng f t)) } / [t - f]
-   @-}
+                  { not (S.member x (rng f t)) } / [t - f]    @-}
 lem_mem :: Int -> Int -> Int -> ()
 lem_mem f t x
  | f < t     =  lem_mem (f + 1) t x
