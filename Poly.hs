@@ -1,16 +1,15 @@
-{-@ LIQUID "--exact-data-con"                      @-}
-{-@ LIQUID "--higherorder"                         @-}
-{-@ LIQUID "--totality"                            @-}
-{-@ LIQUID "--automatic-instances=liquidinstances" @-}
+{-@ LIQUID "--exact-data-con" @-}
+{-@ LIQUID "--higherorder"    @-}
+{-@ LIQUID "--ple"            @-}
 
-module Lists where
+module Poly where
 
-import Prelude hiding (map, rev, sum, foldMap) -- ((+), (+), Eq (..), Ord (..), Char, Int, Bool (..))
-import Language.Haskell.Liquid.ProofCombinators
+import Prelude hiding ((++), map, rev, sum, foldMap)
+import Language.Haskell.Liquid.NewProofCombinators
 
 -- | List Definition -----------------------------------------------------------
 
-{-@ data List [llen] = Nil | Cons {lHd :: a , lTl :: List} @-}
+{-@ data List [llen] @-}
 data List a = Nil | Cons a (List a)
 
 {-@ measure llen @-}
@@ -26,12 +25,16 @@ app :: List a -> List a -> List a
 app Nil         ys = ys
 app (Cons x xs) ys = Cons x (app xs ys)
 
+{-@ infix ++ @-}
+{-@ reflect ++ @-}
+xs ++ ys = app xs ys
+
 -- | Reverse -------------------------------------------------------------------
 
 {-@ reflect rev @-}
 rev :: List a -> List a
 rev Nil         = Nil
-rev (Cons x xs) = app (rev xs) (Cons x Nil)
+rev (Cons x xs) = (rev xs) ++ (Cons x Nil)
 
 -- | Map -----------------------------------------------------------------------
 
@@ -43,19 +46,19 @@ map f (Cons x xs) = Cons (f x) (map f xs)
 --------------------------------------------------------------------------------
 
 {-@ thmAppAssoc :: xs:_ -> ys:_ -> zs:_
-                -> {app xs (app ys zs) = app (app xs ys) zs}
+                -> {xs ++ (ys ++ zs) = (xs ++ ys) ++ zs}
   @-}
 thmAppAssoc :: List a -> List a -> List a -> Proof
 thmAppAssoc Nil ys zs         = trivial
 thmAppAssoc (Cons x xs) ys zs = thmAppAssoc xs ys zs
 
-{-@ thmAppNilR :: xs:List a -> {app xs Nil = xs} @-}
+{-@ thmAppNilR :: xs:List a -> {xs ++ Nil = xs} @-}
 thmAppNilR :: List a -> Proof
 thmAppNilR Nil         = trivial
 thmAppNilR (Cons x xs) = thmAppNilR xs
 
 {-@ thmRevAppDistr :: xs:List a -> ys:List a
-                   -> {rev (app xs ys) = app (rev ys) (rev xs) }
+                   -> {rev (xs ++ ys) = (rev ys) ++ (rev xs) }
   @-}
 thmRevAppDistr :: List a -> List a -> Proof
 thmRevAppDistr Nil ys
@@ -77,7 +80,7 @@ thmRevAppDistr (Cons x xs) ys
      ] *** QED
 
 {-@ thmMapAppDist :: f:_ -> xs:_ -> ys:_
-                  -> {map f (app xs ys) = app (map f xs) (map f ys)}
+                  -> {map f (xs ++ ys) = (map f xs) ++ (map f ys)}
   @-}
 thmMapAppDist :: (a -> b) -> List a -> List a -> Proof
 thmMapAppDist f Nil ys         = ()
