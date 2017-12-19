@@ -7,8 +7,9 @@
 module IndProp_Regexp where
 
 import Poly
+import Language.Haskell.Liquid.Prelude (liquidAssert)
 import Language.Haskell.Liquid.NewProofCombinators
-import Prelude hiding ((++), map, rev, sum, foldMap)
+import Prelude hiding ((++), map, rev, sum, foldMap, concat)
 
 --------------------------------------------------------------------------------
 -- | Regular Expressions
@@ -83,17 +84,67 @@ reg_exp_of_list :: List a -> RegExp a
 reg_exp_of_list Nil         = EmptyStr
 reg_exp_of_list (Cons x xs) = App (Char x) (reg_exp_of_list xs)
 
-{-@ match_list :: xs:List a -> Prop (Match xs (reg_exp_of_list xs)) @-}
-match_list :: List a -> Match a
-match_list Nil         = MEmpty
-match_list (Cons x xs) = MApp (Cons x Nil) (Char x) xs (reg_exp_of_list xs)
-                              (MChar x) (match_list xs)
-
 {-@ mStar1 :: s: List a -> re: RegExp a -> Prop (Match s re) -> Prop (Match s (Star re)) @-}
 mStar1 :: List a -> RegExp a -> Match a -> Match a
 mStar1 s re m = (MStarApp s Nil re m (MStar0 re)) `withPf` (thmAppNilR s)
 
 {- Exercise: 3 stars (exp_match_ex1) -}
+
+{-@ empty_is_empty :: s:List a -> Prop (Match s EmptySet) -> { false } @-}
+empty_is_empty :: List a -> Match a -> ()
+empty_is_empty s MEmpty = ()
+
+{-@ mUnion' :: s:List a -> r1:RegExp a -> r2:RegExp a
+            -> Either (Prop (Match s r1)) (Prop (Match s r2))
+            -> Prop (Match s (Union r1 r2))
+  @-}
+mUnion' s r1 r2 (Left  p) = MUnionL s r1 r2 p
+mUnion' s r1 r2 (Right p) = MUnionR s r1 r2 p
+
+
+{-@ mStar' :: ss:List (List a) -> re:RegExp a ->
+              (s:{List a | member s ss} -> Prop (Match s re)) ->
+              Prop (Match (fold app Nil ss) (Star re))
+  @-}
+mStar' :: List (List a) -> RegExp a -> (List a -> Match a) -> Match a
+mStar' = undefined -- HEREHERE
+
+{-@ reflect concat @-}
+concat :: List (List a) -> List a
+concat Nil         = Nil
+concat (Cons x xs) = app x (concat xs)
+
+
+{-@ foo :: x:a -> xs:List a -> y:a -> re:RegExp a ->
+           Prop (Match (Cons x xs) (App (Char y) re)) ->
+             {x = y}
+  @-}
+foo :: a -> List a -> a -> RegExp a -> Match a -> ()
+foo x xs y re (MApp s1 r1 s2 r2 (MChar _y) m2) = ()
+
+regexp_of_list_spec' :: (Eq a) => List a -> List a -> Match a -> ()
+
+{-@ regexp_of_list_spec' :: xs:List a -> ys:List a ->
+                            Prop (Match xs (reg_exp_of_list ys)) -> {xs = ys}
+  @-}
+
+{- RJ: HARD CONTEXT SHOW-MISSING-CASE-SPLITS -}
+regexp_of_list_spec' (Cons x xs) (Cons y ys) (MApp _ _ _ _ (MChar _) m2)
+  = regexp_of_list_spec' xs ys m2
+regexp_of_list_spec' Nil         (Cons y ys) (MApp _ _ _ _ (MChar _) m2)
+  = ()
+regexp_of_list_spec' Nil         Nil _
+  = ()
+regexp_of_list_spec' (Cons x xs) Nil MEmpty
+  = ()
+
+{-@ regexp_of_list_spec :: xs:List a -> Prop (Match xs (reg_exp_of_list xs)) @-}
+regexp_of_list_spec :: List a -> Match a
+regexp_of_list_spec Nil
+  = MEmpty
+regexp_of_list_spec (Cons x xs)
+  = MApp (Cons x Nil) (Char x) xs (reg_exp_of_list xs)
+         (MChar x) (regexp_of_list_spec xs)
 
 --------------------------------------------------------------------------------
 -- | Crufty termination stuff [How to auto-generate?] --------------------------

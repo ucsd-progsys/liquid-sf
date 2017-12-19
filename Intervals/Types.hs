@@ -10,7 +10,6 @@ import qualified Data.Set as S
 import           Language.Haskell.Liquid.NewProofCombinators
 import           RangeSet
 
-type Offset = Int
 
 -- | Invariant: Intervals are non-empty
 {-@ data Interval = I
@@ -19,8 +18,8 @@ type Offset = Int
       }
   @-}
 data Interval  = I
-  { from :: Offset
-  , to   :: Offset
+  { from :: Int  
+  , to   ::Int  
   } deriving (Show)
 
 --------------------------------------------------------------------------------

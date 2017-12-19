@@ -11,6 +11,7 @@ import Language.Haskell.Liquid.NewProofCombinators
 
 {-@ data List [llen] @-}
 data List a = Nil | Cons a (List a)
+              deriving (Eq)
 
 {-@ measure llen @-}
 {-@ llen :: List a -> Nat @-}
@@ -28,6 +29,11 @@ app (Cons x xs) ys = Cons x (app xs ys)
 {-@ infix ++ @-}
 {-@ reflect ++ @-}
 xs ++ ys = app xs ys
+
+{-@ reflect member @-}
+member :: (Eq a) => a -> List a -> Bool
+member x Nil         = False
+member x (Cons y ys) = x == y || member x ys
 
 -- | Reverse -------------------------------------------------------------------
 
