@@ -1,6 +1,6 @@
 {-@ LIQUID "--exact-data-con" @-}
 {-@ LIQUID "--no-adt"         @-}
-{-@ LIQUID "--ple"            @-}
+{-@ LIQUID "--higherorder"    @-}
 
 module RangeSet where
 
@@ -25,11 +25,19 @@ rng i j
                       { rng (mmax f1 f2) t2 = S.intersection (rng f1 t1) (rng f2 t2) }  @-}
 lem_intersect :: Int -> Int -> Int -> Int -> ()
 lem_intersect f1 t1 f2 t2
-  | f1 < f2   = lem_sub f2 t2 f1 t1
-  | otherwise = lem_split f1 t2 t1
-            &&& lem_split f2 f1 t2
-            &&& lem_disj  f2 f1 f1 t1
-            &&& lem_disj  f2 t2 t2 t1
+  | f1 < f2   =    rng (mmax f1 f2) t2
+              ===  rng f2 t2
+              ==?  S.intersection (rng f1 t1) (rng f2 t2)
+                        ? lem_sub f2 t2 f1 t1
+              *** QED
+
+  | otherwise =    S.intersection (rng f1 t1) (rng f2 t2)
+              ==?  (S.intersection (S.union (rng f1 t2) (rng t2 t1)) (S.union (rng f2 f1) (rng f1 t2)))
+                        ? (lem_split f1 t2 t1 &&& lem_split f2 f1 t2)
+              ==?  rng f1 t2
+                        ? (lem_disj  f2 f1 f1 t1 &&& lem_disj  f2 t2 t2 t1)
+              ===  rng (mmax f1 f2) t2
+              ***  QED
 
 --------------------------------------------------------------------------------
 -- | LEMMA: The endpoints define the union of overlapping range-sets.
@@ -38,10 +46,19 @@ lem_intersect f1 t1 f2 t2
                 { rng (mmin f1 f2) t1 = S.union (rng f1 t1) (rng f2 t2) }   @-}
 lem_union :: Int -> Int -> Int -> Int -> ()
 lem_union f1 t1 f2 t2
-  | f1 < f2   = lem_sub f2 t2 f1 t1
-  | otherwise = lem_split f2 f1 t1
-            &&& lem_split f1 t2 t1
-            &&& lem_split f2 f1 t2
+  | f1 < f2   =    rng (mmin f1 f2) t1
+              ===  rng f1 t1
+              ==?  S.union (rng f1 t1) (rng f2 t2) ? lem_sub f2 t2 f1 t1
+              *** QED
+
+  | otherwise =   S.union (rng f1 t1) (rng f2 t2)
+              ==? S.union (S.union (rng f1 t2) (rng t2 t1)) (S.union (rng f2 f1) (rng f1 t2))
+                  ? (lem_split f1 t2 t1 &&& lem_split f2 f1 t2)
+              === S.union (rng f2 f1) (S.union (rng f1 t2) (rng t2 t1))
+              === S.union (rng f2 f1) (rng f1 t1)
+              ==? rng f2 t1 ? lem_split f2 f1 t1
+              === rng (mmin f1 f2) t1
+              *** QED
 
 --------------------------------------------------------------------------------
 -- | LEMMA: The range-set of an interval is contained inside that of a larger.
@@ -56,11 +73,45 @@ lem_sub f1 t1 f2 t2 = lem_split f2 f1 t2
 -- | LEMMA: A range-set can be partitioned by any point within the range.
 --------------------------------------------------------------------------------
 {-@ lem_split :: f:_ -> x:{_ | f <= x} -> t:{_ | x <= t} ->
-                   { disjointUnion (rng f t) (rng f x) (rng x t) } / [x - f] @-}
+                   { disjointUnion (rng f t) (rng f x) (rng x t) } @-}
 lem_split :: Int -> Int -> Int -> ()
-lem_split f x t
-  | f == x    =  ()
-  | otherwise =  lem_split (f + 1) x t &&& lem_mem x t f
+lem_split f x t = lem_split_union f x t &&& lem_split_disj f x t
+
+
+{-@ lem_split_disj :: f:_ -> x:{_ | f <= x} -> t:{_ | x <= t} ->
+                        { disjoint (rng f x) (rng x t) } / [x - f]  @-}
+lem_split_disj :: Int -> Int -> Int -> ()
+lem_split_disj f x t
+  | f == x    =   disjoint (rng f f) (rng f t)
+              === disjoint (S.empty) (rng f t)
+              === (S.intersection S.empty (rng f t) == S.empty)
+              === True
+              *** QED
+
+  | otherwise =   disjoint (rng f x) (rng x t)
+              === disjoint (S.union (S.singleton f) (rng (f + 1) x)) (rng x t)
+              === ((not (S.member f (rng x t))) && disjoint (rng (f+1) x) (rng x t))
+              ==? True ? (lem_mem x t f &&& lem_split_disj (f + 1) x t)
+              *** QED
+
+
+{-@ lem_split_union :: f:_ -> x:{_ | f <= x} -> t:{_ | x <= t} ->
+                        { rng f t = S.union (rng f x) (rng x t) } / [x - f]  @-}
+lem_split_union :: Int -> Int -> Int -> ()
+lem_split_union f x t
+  | f == x    =   rng f t
+              === S.union S.empty   (rng f t)
+              === S.union (rng f f) (rng f t)
+              *** QED
+
+  | otherwise =   rng f t
+              === S.union (S.singleton f) (rng (f+1) t)
+              ==? S.union (S.singleton f) (S.union (rng (f+1) x) (rng x t))
+                  ? lem_split_union (f + 1) x t
+              === S.union (S.union (S.singleton f) (rng (f+1) x)) (rng x t)
+              === S.union (rng f x) (rng x t)
+              *** QED
+              -- lem_split (f + 1) x t &&& lem_mem x t f
 
 --------------------------------------------------------------------------------
 -- | LEMMA: The range-sets of non-overlapping ranges is disjoint.
@@ -69,8 +120,17 @@ lem_split f x t
                    { disjoint (rng f1 t1) (rng f2 t2) } / [t2 - f2] @-}
 lem_disj :: Int -> Int -> Int -> Int -> ()
 lem_disj f1 t1 f2 t2
-  | f2 < t2   = lem_mem f1 t1 f2 &&& lem_disj f1 t1 (f2 + 1) t2
-  | otherwise = ()
+  | f2 < t2   =   disjoint (rng f1 t1) (rng f2 t2)
+              === disjoint (rng f1 t1) (S.union (S.singleton f2) (rng (f2 + 1) t2))
+              === (disjoint (rng f1 t1) (rng (f2 + 1) t2) && not (S.member f2 (rng f1 t1)))
+              ==? disjoint (rng f1 t1) (rng (f2 + 1) t2) ? lem_mem f1 t1 f2
+              ==? True                                   ? lem_disj f1 t1 (f2 + 1) t2
+              *** QED
+  | otherwise =   disjoint (rng f1 t1) (rng f2 t2)
+              === disjoint (rng f1 t1) S.empty
+              === True
+              *** QED
+
 
 --------------------------------------------------------------------------------
 -- | LEMMA: If x is not in a given range, then x is not in the range-set.
@@ -80,8 +140,16 @@ lem_disj f1 t1 f2 t2
   @-}
 lem_mem :: Int -> Int -> Int -> ()
 lem_mem f t x
-  | f < t     =  lem_mem (f + 1) t x
-  | otherwise =  ()
+  | f < t   =   not (S.member x (rng f t))
+            === not (S.member x (S.union (S.singleton f) (rng (f + 1) t)))
+            === (x /= f && not (S.member x (rng (f + 1) t)))
+            ==? True ? lem_mem (f + 1) t x
+            *** QED
+  | otherwise = not (S.member x (rng f t))
+            === not (S.member x S.empty)
+            === True
+            *** QED
+
 
 
 
