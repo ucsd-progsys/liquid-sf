@@ -39,6 +39,18 @@ lem_intersect f1 t1 f2 t2
               ===  rng (mmax f1 f2) t2
               ***  QED
 
+{-
+{- lem_intersect :: f1:_ -> t1:{_ | f1 < t1} -> f2:_ -> t2:{_ | f2 < t2 && f1 <= t2 && t2 <= t1 } ->
+                      { rng (mmax f1 f2) t2 = S.intersection (rng f1 t1) (rng f2 t2) }  @-}
+lem_intersect :: Int -> Int -> Int -> Int -> ()
+lem_intersect f1 t1 f2 t2
+  | f1 < f2   = lem_sub f2 t2 f1 t1
+  | otherwise = lem_split f1 t2 t1
+            &&& lem_split f2 f1 t2
+            &&& lem_disj  f2 f1 f1 t1
+            &&& lem_disj  f2 t2 t2 t1
+
+-}
 --------------------------------------------------------------------------------
 -- | LEMMA: The endpoints define the union of overlapping range-sets.
 --------------------------------------------------------------------------------
@@ -59,7 +71,16 @@ lem_union f1 t1 f2 t2
               ==? rng f2 t1 ? lem_split f2 f1 t1
               === rng (mmin f1 f2) t1
               *** QED
-
+{-
+{- lem_union :: f1:_ -> t1:{_ | f1 < t1} -> f2:_ -> t2:{_ | f2 < t2 && f1 <= t2 && t2 <= t1 } ->
+                { rng (mmin f1 f2) t1 = S.union (rng f1 t1) (rng f2 t2) }   @-}
+lem_union :: Int -> Int -> Int -> Int -> ()
+lem_union f1 t1 f2 t2
+  | f1 < f2   = lem_sub f2 t2 f1 t1
+  | otherwise = lem_split f2 f1 t1
+            &&& lem_split f1 t2 t1
+            &&& lem_split f2 f1 t2
+-}
 --------------------------------------------------------------------------------
 -- | LEMMA: The range-set of an interval is contained inside that of a larger.
 --------------------------------------------------------------------------------
@@ -75,25 +96,7 @@ lem_sub f1 t1 f2 t2 = lem_split f2 f1 t2
 {-@ lem_split :: f:_ -> x:{_ | f <= x} -> t:{_ | x <= t} ->
                    { disjointUnion (rng f t) (rng f x) (rng x t) } @-}
 lem_split :: Int -> Int -> Int -> ()
-lem_split f x t = lem_split_union f x t &&& lem_split_disj f x t
-
-
-{-@ lem_split_disj :: f:_ -> x:{_ | f <= x} -> t:{_ | x <= t} ->
-                        { disjoint (rng f x) (rng x t) } / [x - f]  @-}
-lem_split_disj :: Int -> Int -> Int -> ()
-lem_split_disj f x t
-  | f == x    =   disjoint (rng f f) (rng f t)
-              === disjoint (S.empty) (rng f t)
-              === (S.intersection S.empty (rng f t) == S.empty)
-              === True
-              *** QED
-
-  | otherwise =   disjoint (rng f x) (rng x t)
-              === disjoint (S.union (S.singleton f) (rng (f + 1) x)) (rng x t)
-              === ((not (S.member f (rng x t))) && disjoint (rng (f+1) x) (rng x t))
-              ==? True ? (lem_mem x t f &&& lem_split_disj (f + 1) x t)
-              *** QED
-
+lem_split f x t = lem_split_union f x t &&& lem_disj f x x t
 
 {-@ lem_split_union :: f:_ -> x:{_ | f <= x} -> t:{_ | x <= t} ->
                         { rng f t = S.union (rng f x) (rng x t) } / [x - f]  @-}
@@ -111,7 +114,15 @@ lem_split_union f x t
               === S.union (S.union (S.singleton f) (rng (f+1) x)) (rng x t)
               === S.union (rng f x) (rng x t)
               *** QED
-              -- lem_split (f + 1) x t &&& lem_mem x t f
+
+{-
+{- lem_split :: f:_ -> x:{_ | f <= x} -> t:{_ | x <= t} ->
+                   { disjointUnion (rng f t) (rng f x) (rng x t) } / [x - f] @-}
+lem_split :: Int -> Int -> Int -> ()
+lem_split f x t
+  | f == x    =  ()
+  | otherwise =  lem_split (f + 1) x t &&& lem_mem x t f
+-}
 
 --------------------------------------------------------------------------------
 -- | LEMMA: The range-sets of non-overlapping ranges is disjoint.
@@ -131,6 +142,14 @@ lem_disj f1 t1 f2 t2
               === True
               *** QED
 
+{-
+{- lem_disj :: f1:_ -> t1:_ -> f2:{Int | t1 <= f2 } -> t2:Int  ->
+                   { disjoint (rng f1 t1) (rng f2 t2) } / [t2 - f2] @-}
+lem_disj :: Int -> Int -> Int -> Int -> ()
+lem_disj f1 t1 f2 t2
+  | f2 < t2   = lem_mem f1 t1 f2 &&& lem_disj f1 t1 (f2 + 1) t2
+  | otherwise = ()
+-}
 
 --------------------------------------------------------------------------------
 -- | LEMMA: If x is not in a given range, then x is not in the range-set.
@@ -150,7 +169,15 @@ lem_mem f t x
             === True
             *** QED
 
-
+{-
+{- lem_mem :: f:Int -> t:Int -> x:{Int| x < f || t <= x} ->
+                  { not (S.member x (rng f t)) } / [t - f]
+  -}
+  lem_mem :: Int -> Int -> Int -> ()
+  lem_mem f t x
+    | f < t     =  lem_mem (f + 1) t x
+    | otherwise =  ()
+-}
 
 
 --------------------------------------------------------------------------------
