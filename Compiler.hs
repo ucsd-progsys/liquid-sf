@@ -1,8 +1,7 @@
-{-@ LIQUID "--exact-data-con"                      @-}
-{-@ LIQUID "--higherorder"                         @-}
-{-@ LIQUID "--totality"                            @-}
-{-@ LIQUID "--automatic-instances=liquidinstances" @-}
-{-@ LIQUID "--diff"                                @-}
+{-@ LIQUID "--exact-data-con" @-}
+{-@ LIQUID "--higherorder"    @-}
+{-@ LIQUID "--ple"            @-} 
+{-@ LIQUID "--no-totality"    @-} 
 
 module Compiler where
 
@@ -10,22 +9,18 @@ import Language.Haskell.Liquid.ProofCombinators
 
 -- | Expressions ---------------------------------------------------------------
 
-{-@ data Expr [eSize]
-      = Val Int
-      | Add {add1 :: Expr, add2 :: Expr}
-  @-}
-
+{-@ data Expr [eSize] @-}
 data Expr
   = Val Int
   | Add Expr Expr
 
 {-@ measure eSize @-}
-{-@ eSize :: Expr -> Nat @-}
+{-@ eSize :: Expr -> {v:Int | 1 <= v} @-}
 eSize :: Expr -> Int
-eSize (Val n)     = 0
+eSize (Val n)     = 1
 eSize (Add e1 e2) = 1 + eSize e1 + eSize e2
 
-{-@ invariant {v:Expr | 0 <= eSize v } @-}
+{-@ invariant {v:Expr | 1 <= eSize v } @-}
 
 -- | Interpreter ---------------------------------------------------------------
 
@@ -36,11 +31,7 @@ interp (Add e1 e2) = interp e1 + interp e2
 
 -- | Code ----------------------------------------------------------------------
 
-{-@ data Code [cSize]
-      = HALT
-      | PUSH {pVal :: Int, pRest :: Code }
-      | ADD  {             pRest :: Code }
-  @-}
+{-@ data Code [cSize] @-}
 data Code
   = HALT
   | PUSH Int Code
@@ -54,11 +45,6 @@ cSize (PUSH n c) = 1 + cSize c
 cSize (ADD    c) = 1 + cSize c
 
 -- | Stack ---------------------------------------------------------------------
-
-{-@ data Stack
-      = Emp
-      | Arg {sTop :: Int, sRest :: Stack }
-  @-}
 data Stack
   = Emp
   | Arg Int Stack
@@ -92,10 +78,17 @@ compileAndRun e = run (compileC e HALT) Emp
       { run (compileC e c) s = run c (Arg (interp e) s) }
   @-}
 thmCompileC :: Expr -> Code -> Stack -> Proof
-thmCompileC (Val n)     c s
-  =   trivial
-thmCompileC (Add e1 e2) c s
-  = [ -- run (compileC (Add e1 e2) c) s
+thmCompileC (Val n)     c s =  () 
+thmCompileC (Add e1 e2) c s =  thmCompileC e2 (compileC e1  (ADD c)) s
+                           &&& thmCompileC e1 (ADD c) (Arg (interp e2) s)
+
+{-@ thmCompileAndRun :: e:Expr -> { compileAndRun e == interp e } @-}
+thmCompileAndRun :: Expr -> Proof
+thmCompileAndRun e = thmCompileC e HALT Emp
+
+
+{- thmCompileC (Add e1 e2) c s
+   = [ -- run (compileC (Add e1 e2) c) s
       -- ==. run (compileC e2 (compileC e1 (ADD c))) s
       {- ? -} thmCompileC e2 (compileC e1  (ADD c)) s
       -- ==. run (compileC e1 (ADD c)) (Arg (interp e2) s)
@@ -104,10 +97,7 @@ thmCompileC (Add e1 e2) c s
       -- ==. run c (Arg (interp e1 + interp e2) s)
       -- ==. run c (Arg (interp (Add e1 e2)) s)
     ] *** QED
-
-{-@ thmCompileAndRun :: e:Expr -> { compileAndRun e == interp e } @-}
-thmCompileAndRun :: Expr -> Proof
-thmCompileAndRun e = thmCompileC e HALT Emp
+ -}
 
 
 
