@@ -12,9 +12,6 @@ import Perm
 
 -- | Insertion Sort ------------------------------------------------------------
 
--- This works automatically too.
-{- insert :: (Ord a) => x:a -> xs:List a -> {v:List a | permutation (Cons x xs) v} @-}
-
 {-@ reflect sort @-}
 sort :: (Ord a) => [a] -> [a]
 sort []    = [] 
@@ -85,5 +82,8 @@ thm_sort_sorted (x:xs) = thm_sort_sorted xs &&& lem_ins_sorted x (sort xs)
 
 {-@ type Is_Sorting_Algo F = xs:_ -> { perm xs (F xs) && sorted (F xs) } @-}
 
-{- hoho :: Is_Sorting_Algo sort @-}
+-- | Verification of Correctness --------------------------------------------
 
+{-@ thm_sort_correct :: Is_Sorting_Algo sort @-}
+thm_sort_correct :: (Ord a) => [a] -> Proof 
+thm_sort_correct xs = thm_sort_sorted xs &&& thm_sort_perm xs
