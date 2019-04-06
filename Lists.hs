@@ -170,7 +170,7 @@ thmTlLenPrev (Cons x xs) = trivial
                 -> {app xs (app ys zs) = app (app xs ys) zs} @-}
 thmAppAssoc :: List -> List -> List  -> Proof
 thmAppAssoc Nil ys zs         = trivial
-thmAppAssoc (Cons x xs) ys zs = thmAppAssoc xs ys zs
+thmAppAssoc (Cons x xs) ys zs = trivial --thmAppAssoc xs ys zs
 
 {-@ thmAppLen :: xs:List -> ys: List -> { llen (app xs ys) = llen xs + llen ys } @-}
 thmAppLen :: List -> List -> Proof

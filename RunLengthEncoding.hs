@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs             #-}
 {-@ LIQUID "--higherorder"     @-}
 {-@ LIQUID "--exact-data-cons" @-}
 {-@ LIQUID "--ple"             @-}
@@ -38,19 +39,28 @@ inc_ext = ext_axiom
 ---------------------------------------------------------------------------
 -- | Extensionality Axiom
 ---------------------------------------------------------------------------
-{-@ assume ext_axiom :: (Protect a) => f:(a -> b) -> g:(a -> b) -> pf:(x:a -> {f x == g x}) -> {f == g} @-}
-ext_axiom :: (Protect a) => (a -> b) -> (a -> b) -> (a -> pf) -> Proof
+{-@ assume ext_axiom ::  f:_  -> g:_ -> pf:(x:_ -> {f x == g x}) -> {f == g} @-}
+ext_axiom :: (a ~ a) => (a -> b) -> (a -> b) -> (a -> pf) -> Proof
 ext_axiom f g pf = undefined
 
-class Protect a where
-  protect :: a -> a
-  protect x = x
-
-instance Protect Int where
 ---------------------------------------------------------------------------
 
+{-@ assoc_comp :: f:_ -> g:_ -> h:_ -> { (f % g) % h == f % (g % h) } @-}
+assoc_comp :: (c -> d) -> (b -> c) -> (a -> b) -> () 
+assoc_comp f g h = ext_axiom 
+                     ((f % g) % h)
+                     (f % (g  % h))
+                     (assoc_comp' f g h) 
 
-{-@ rle_thm :: () -> { decode % encode == id } @-}
+{-@ inline assoc_comp_thm @-}
+assoc_comp_thm f g h x = ((f % g) % h) x == (f % (g % h)) x 
+
+{-@ assoc_comp' :: f:_ -> g:_ -> h:_ -> x:_ -> { assoc_comp_thm f g h x } @-}
+assoc_comp' :: (c -> d) -> (b -> c) -> (a -> b) -> a -> ()
+assoc_comp' f g h x = ()
+
+{- 
+{- rle_thm :: () -> { decode % encode == id } @-}
 rle_thm :: () -> ()
 rle_thm _
   =   decode % encode
@@ -64,6 +74,7 @@ rle_thm _
   ==? id                                                    ? concat_group_inv
   *** QED
 
+  -}
 {-
 assoc_4
   =  (a % b) % (c % d)
