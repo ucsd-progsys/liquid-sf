@@ -95,3 +95,12 @@ thm_maybe_swap_fle []  = ()
 {-@ thm_maybe_swap_correct :: xs:_ -> { perm xs (maybeSwap xs) && fst_le_snd (maybeSwap xs) }  @-}
 thm_maybe_swap_correct :: (Ord a) => [a] -> Proof 
 thm_maybe_swap_correct xs = thm_maybe_swap_perm xs &&& thm_maybe_swap_fle xs 
+
+
+-- | Properties of Permutations ------------------------------------------------
+
+{-@ type All Xs P = xall1:{ S.member xall1 (lElems Xs) } -> {P xall1} @-}
+
+{-@ thm_perm_prop :: p:_ -> xs:_ -> ys:{perm xs ys} -> (All xs p) -> (All ys p) @-}
+thm_perm_prop :: (Ord a) => (a -> Bool) -> [a] -> [a] -> (a -> Proof) -> a -> Proof
+thm_perm_prop _ _ _ pf = pf 

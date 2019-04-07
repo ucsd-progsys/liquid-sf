@@ -87,3 +87,5 @@ thm_sort_sorted (x:xs) = thm_sort_sorted xs &&& lem_ins_sorted x (sort xs)
 {-@ thm_sort_correct :: Is_Sorting_Algo sort @-}
 thm_sort_correct :: (Ord a) => [a] -> Proof 
 thm_sort_correct xs = thm_sort_sorted xs &&& thm_sort_perm xs
+
+{-# ANN module "HLint: ignore Use camelCase" #-}

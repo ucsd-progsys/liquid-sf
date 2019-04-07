@@ -2,14 +2,14 @@
 
 ## Chapter dependencies
 
+```
 - Perm -> Sort -> Selection -> SearchTree -> Redblack
   |       |                    |
   `->Trie `-> Multiset         `-> ADT -> Priqueue -> Binom
-
-
+```
 
 - [x] Perm
-- [ ] Sort
+- [x] Sort
 - [ ] Selection
 - [ ] SearchTree
 - [ ] RedBlack
