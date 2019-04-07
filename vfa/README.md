@@ -8,9 +8,11 @@
   `->Trie `-> Multiset         `-> ADT -> Priqueue -> Binom
 ```
 
+## Progress Bar 
+
 - [x] Perm
 - [x] Sort
-- [ ] Selection
+- [x] Selection
 - [ ] SearchTree
 - [ ] RedBlack
 - [ ] Trie
