@@ -13,8 +13,10 @@
 - [x] Perm
 - [x] Sort
 - [x] Selection
+- [ ] TotalMaps
 - [ ] SearchTree
 - [ ] RedBlack
+
 - [ ] Trie
 - [ ] Multiset
 - [ ] ADT

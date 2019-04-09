@@ -134,7 +134,6 @@ infixl 3 ==!
 (==!) :: a -> a -> a
 (==!) _ y = y
 
-
 -- | To summarize:
 --
 -- 	- (==!) is *only* for proof debugging

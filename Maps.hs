@@ -29,9 +29,9 @@ t_read (TM d kvs) key = lookupDefault d key kvs
 {-@ reflect lookupDefault @-}
 lookupDefault :: (Eq k) => v -> k -> [(k, v)] -> v
 lookupDefault d key ((k,v) : kvs)
-  | k == key                      = v
-  | otherwise                     = lookupDefault d key kvs
-lookupDefault d _   []            = d
+  | k == key           = v
+  | otherwise          = lookupDefault d key kvs
+lookupDefault d _   [] = d
 
 {-@ reflect exMap @-}
 exMap :: TotalMap Int
