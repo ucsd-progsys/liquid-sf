@@ -3,12 +3,12 @@
 ## Chapter dependencies
 
 ```
-- Perm -> Sort -> Selection -> SearchTree -> Redblack
-  |       |                    |
-  `->Trie `-> Multiset         `-> ADT -> Priqueue -> Binom
+- Perm+ -> Sort+ -> Selection+ -> SearchTree+ -> Redblack
+  |        |                      |
+  `->Trie  `-> Multiset           `-> ADT -> Priqueue -> Binom
 ```
 
-## Progress Bar 
+## Progress
 
 - [x] Perm
 - [x] Sort
