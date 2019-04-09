@@ -13,8 +13,8 @@
 - [x] Perm
 - [x] Sort
 - [x] Selection
-- [ ] TotalMaps
-- [ ] SearchTree
+- [x] TotalMaps
+- [x] SearchTree
 - [ ] RedBlack
 
 - [ ] Trie
