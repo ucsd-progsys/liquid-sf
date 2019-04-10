@@ -15,9 +15,7 @@
 - [x] Selection
 - [x] TotalMaps
 - [x] SearchTree
-
 - [ ] RedBlack
-
 - [ ] Trie
 - [ ] Multiset
 - [ ] ADT
